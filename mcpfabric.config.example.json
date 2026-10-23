@@ -1,0 +1,15 @@
+{
+  "host": "127.0.0.1",
+  "port": 25600,
+  "token": "put-a-long-random-token-here",
+  "requireAuth": true,
+  "callTimeoutMs": 8000,
+  "enableWorldWrite": false,
+  "enableCommands": false,
+  "enablePlayerControl": true,
+  "enableVision": true,
+  "enableUiControl": true,
+  "enableSupervisedControl": false,
+  "supervisedWorlds": [],
+  "supervisedCommands": []
+}

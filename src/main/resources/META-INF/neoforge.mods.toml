@@ -1,0 +1,16 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+
+[[mods]]
+modId="claude_ears"
+version="1.0.0"
+displayName="Claude's Ears"
+description='''Client-only: saves what nearby players say in Simple Voice Chat as short WAV files so Claude can transcribe them.'''
+
+[[dependencies.claude_ears]]
+modId="voicechat"
+type="required"
+versionRange="*"
+ordering="NONE"
+side="CLIENT"

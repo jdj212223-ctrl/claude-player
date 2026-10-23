@@ -1,0 +1,13 @@
+# Game folder: worlds, logs, mods and run/config/mcpfabric.config.json (holds the bridge token). Never commit it.
+run/
+# whisper.cpp speech model (download it, see README)
+models/
+build/
+.gradle/
+node_modules/
+*.log
+shot.png
+buddy.mode
+limit.mode
+house_ground.json
+.DS_Store

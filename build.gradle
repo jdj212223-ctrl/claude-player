@@ -1,0 +1,29 @@
+// A second Minecraft client for Claude: plain NeoForge 1.21.1, offline name "claude",
+// loading the same mod jars as the "NeoForge 1.21.1 (1)" instance from run/mods, plus Claude's Ears (src/).
+plugins {
+    id 'java'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+dependencies {
+    // Simple Voice Chat's API ships inside the mod jar the client already loads from run/mods.
+    compileOnly files('run/mods/voicechat-neoforge-1.21.1-2.6.24.jar')
+}
+
+neoForge {
+    version = '21.1.264'
+    mods {
+        claude_ears {
+            sourceSet sourceSets.main
+        }
+    }
+    runs {
+        client {
+            client()
+            gameDirectory = project.file('run')
+            programArguments.addAll('--username', 'claude', '--quickPlayMultiplayer', "127.0.0.1:${project.findProperty('port') ?: '25565'}")
+        }
+    }
+}
