@@ -1,4 +1,4 @@
-"""Draws Claude's 64x64 Minecraft skin (classic arms) to claude_skin.png, without any image library."""
+"""Draws Claude's 64x64 Minecraft skin (classic arms) to claude_skin.png, or the sculk-corrupted Backrooms version to\nclaude_skin_sculk.png with --sculk, without any image library."""
 import random, struct, zlib
 
 W = H = 64
@@ -54,10 +54,31 @@ fill(16, 48, 32, 64, PANTS, PANTS_D)
 fill(0, 29, 16, 32, CREAM, CREAM_D, 0.1); fill(8, 16, 12, 20, CREAM)
 fill(16, 61, 32, 64, CREAM, CREAM_D, 0.1); fill(24, 48, 28, 52, CREAM)
 
+# --sculk: the Backrooms version. Sculk spreads over the skin in patches, the eyes and the spark glow cyan.
+import sys
+SCULK = "--sculk" in sys.argv
+if SCULK:
+    DARK, DEEP, GLOW = (10, 26, 38), (6, 44, 53), (41, 223, 213)
+    seeds = [(rnd.randrange(W), rnd.randrange(H)) for _ in range(26)]
+    for y in range(H):
+        for x in range(W):
+            if px[y][x][3] == 0:
+                continue
+            d = min(abs(x - sx) + abs(y - sy) for sx, sy in seeds)
+            if d < 4 + rnd.random() * 3:
+                px[y][x] = (*(GLOW if rnd.random() < 0.08 else DARK if rnd.random() < 0.6 else DEEP), 255)
+            elif d < 7 and rnd.random() < 0.35:
+                px[y][x] = (*DEEP, 255)
+    for x, y in ((10, 12), (13, 12)):
+        px[y][x] = (*GLOW, 255)
+    for d in range(-3, 4):
+        for x, y in ((cx + d, cy), (cx, cy + d)):
+            px[y][x] = (*GLOW, 255)
+
 def chunk(kind, data):
     return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
 
 raw = b"".join(b"\x00" + bytes(v for p in row for v in p) for row in px)
 png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", W, H, 8, 6, 0, 0, 0)) \
     + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
-open(__file__.replace("make_skin.py", "claude_skin.png"), "wb").write(png)
+open(__file__.replace("make_skin.py", "claude_skin_sculk.png" if SCULK else "claude_skin.png"), "wb").write(png)

@@ -5,8 +5,8 @@ import { readFileSync } from "node:fs";
 const dir = new URL(".", import.meta.url).pathname;
 const NEAR = 4, SPRINT_AT = 12, TURN = 14; // blocks, blocks, degrees per step
 
-async function call(tool, args = {}) {
-  const res = await (await fetch("http://127.0.0.1:25601", { method: "POST", body: JSON.stringify({ tool, args }) })).json();
+async function call(tool, args = {}, target = "me") {
+  const res = await (await fetch("http://127.0.0.1:25601", { method: "POST", body: JSON.stringify({ tool, args, target }) })).json();
   const text = res.content?.[0]?.text ?? "";
   try { return JSON.parse(text); } catch { return text; }
 }
@@ -14,6 +14,13 @@ const mode = () => { try { return readFileSync(dir + "buddy.mode", "utf8").trim(
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const wrap = a => ((a + 540) % 360) - 180;
 
+// Skin per dimension (skin/skins.json): the normal one outside, sculk-corrupted in the Backrooms. Set through the
+// host's SkinRestorer whenever Claude changes dimension; other dimensions use the overworld skin.
+const skinFor = dim => {
+  try { const s = JSON.parse(readFileSync(dir + "skin/skins.json", "utf8")); return s[dim] || s["minecraft:overworld"]; }
+  catch { return null; }
+};
+let skinDim = null;
 let lastDeathCheck = 0, lastScreenCheck = 0, navigatingSince = 0, glanceUntil = 0, glanceYaw = 0, nextGlance = Date.now() + 6000, wasOn = false;
 for (;;) {
   await sleep(150);
@@ -23,6 +30,11 @@ for (;;) {
     try {
       const self = await call("get_self");
       if (typeof self === "object" && self.health <= 0) { await sleep(2200); await call("click_widget", { widget: "wake up" }); }
+      if (typeof self === "object" && self.dimension && self.dimension !== skinDim) {
+        const url = skinFor(self.dimension);
+        if (url && url !== skinFor(skinDim)) await call("run_command", { command: `skin set web classic "${url}" claude` }, "host");
+        skinDim = self.dimension;
+      }
     } catch {}
   }
   const [m, who = "jdj125"] = mode();
@@ -40,10 +52,16 @@ for (;;) {
     }
     const me = await call("get_self");
     if (typeof me !== "object" || me.health <= 0) continue;
-    const scene = await call("describe_scene", { rayColumns: 1, rayRows: 1, maxDistance: 64 });
-    const them = scene?.entities?.find(e => e.name === who);
-    // describe_scene only sees what is in front, so turn round to look for them.
-    if (!them) { if (!navigatingSince) await call("look", { deltaYaw: 35, pitch: 0 }); continue; }
+    // Ask the host where they are: works through walls and behind Claude, unlike what Claude can see.
+    const p = await call("get_player", { player: who }, "host");
+    if (typeof p !== "object") continue;
+    // Noclip scatters players across the Backrooms: too far to walk, so catch up with a teleport.
+    if (p.dimension !== me.dimension || Math.hypot(p.x - me.x, p.z - me.z) > 64) {
+      await call("run_command", { command: `tp claude ${who}` }, "host");
+      await sleep(1500);
+      continue;
+    }
+    const them = { pos: { x: p.x, y: p.y, z: p.z } };
     const dx = them.pos.x - me.x, dy = them.pos.y + 1.5 - (me.y + 1.62), dz = them.pos.z - me.z;
     const dist = Math.hypot(dx, dz);
     if (dist > NEAR + 1) {
