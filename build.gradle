@@ -22,8 +22,10 @@ neoForge {
     runs {
         client {
             client()
-            gameDirectory = project.file('run')
-            programArguments.addAll('--username', 'claude', '--quickPlayMultiplayer', "127.0.0.1:${project.findProperty('port') ?: '25565'}")
+            // -Pplayer=<name> starts another AI player (game folder run-<name>/, made by any-ai/new-player.sh).
+            def player = project.findProperty('player') ?: 'claude'
+            gameDirectory = project.file(player == 'claude' ? 'run' : "run-${player}")
+            programArguments.addAll('--username', player, '--quickPlayMultiplayer', "127.0.0.1:${project.findProperty('port') ?: '25565'}")
         }
     }
 }

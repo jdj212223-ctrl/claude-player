@@ -1,9 +1,11 @@
 // Keeps MCP connections open so background jobs (collect, travel, explore) survive between calls:
 //   "me"   = Claude's own client (bridge on 25600, token from run/config),
 //   "host" = the user's game (their own MCPFabric bridge, via mcpfabric/run-mcp.sh, which reads its token itself).
-// mc.mjs, talk.mjs, status.mjs and buddy.mjs talk to it over http://127.0.0.1:25601 with {tool, args, target}.
+// mc.mjs, talk.mjs, status.mjs and buddy.mjs talk to it over http://127.0.0.1:25601 with {tool, args, target}
+// (another player made with any-ai/new-player.sh gets its own daemon, see player.mjs).
 import { createServer } from "node:http";
 import { resolve } from "node:path";
+import { DAEMON_PORT } from "./player.mjs";
 const dir = new URL(".", import.meta.url).pathname;
 // Where the MCPFabric checkout lives (its mcp-server must be built), and the command that starts an MCP server
 // for the host player's game, which reads that game's token itself.
@@ -17,7 +19,8 @@ const clients = {};
 async function client(target) {
   if (!clients[target]) {
     const c = new Client({ name: "claude-player", version: "2.0.0" });
-    await c.connect(new StdioClientTransport({ command: COMMANDS[target], stderr: "ignore" }));
+    // Pass our environment on (PLAYER picks which body run-mcp.sh serves); the SDK otherwise passes only a few variables.
+    await c.connect(new StdioClientTransport({ command: COMMANDS[target], env: { ...process.env }, stderr: "ignore" }));
     clients[target] = c;
   }
   return clients[target];
@@ -41,4 +44,4 @@ createServer(async (req, res) => {
     delete clients[target];
     res.end(JSON.stringify({ content: [{ type: "text", text: "ERROR " + e.message }] }));
   }
-}).listen(25601, "127.0.0.1");
+}).listen(DAEMON_PORT, "127.0.0.1");

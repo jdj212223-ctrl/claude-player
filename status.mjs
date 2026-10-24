@@ -1,7 +1,8 @@
 // A short text snapshot of Claude's situation, cheap enough to check before every action:
 // where it is, health and food, what is in its hand and hotbar, what it is looking at, and who is nearby.
+import { DAEMON } from "./player.mjs";
 async function call(tool, args = {}) {
-  const res = await (await fetch("http://127.0.0.1:25601", { method: "POST", body: JSON.stringify({ tool, args }) })).json();
+  const res = await (await fetch(DAEMON, { method: "POST", body: JSON.stringify({ tool, args }) })).json();
   const text = res.content?.[0]?.text ?? "";
   try { return JSON.parse(text); } catch { return text; }
 }

@@ -2,15 +2,16 @@
 // head smoothly to look at them, glancing around now and then. Write "follow <name>" or "off" to buddy.mode to steer it;
 // "off" leaves movement free for jobs and manual control.
 import { readFileSync } from "node:fs";
+import { DAEMON, MODE, NAME } from "./player.mjs";
 const dir = new URL(".", import.meta.url).pathname;
 const NEAR = 4, SPRINT_AT = 12, TURN = 14; // blocks, blocks, degrees per step
 
 async function call(tool, args = {}, target = "me") {
-  const res = await (await fetch("http://127.0.0.1:25601", { method: "POST", body: JSON.stringify({ tool, args, target }) })).json();
+  const res = await (await fetch(DAEMON, { method: "POST", body: JSON.stringify({ tool, args, target }) })).json();
   const text = res.content?.[0]?.text ?? "";
   try { return JSON.parse(text); } catch { return text; }
 }
-const mode = () => { try { return readFileSync(dir + "buddy.mode", "utf8").trim().split(/\s+/); } catch { return ["off"]; } };
+const mode = () => { try { return readFileSync(MODE, "utf8").trim().split(/\s+/); } catch { return ["off"]; } };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const wrap = a => ((a + 540) % 360) - 180;
 
@@ -32,7 +33,7 @@ for (;;) {
       if (typeof self === "object" && self.health <= 0) { await sleep(2200); await call("click_widget", { widget: "wake up" }); }
       if (typeof self === "object" && self.dimension && self.dimension !== skinDim) {
         const url = skinFor(self.dimension);
-        if (url && url !== skinFor(skinDim)) await call("run_command", { command: `skin set web classic "${url}" claude` }, "host");
+        if (NAME === "claude" && url && url !== skinFor(skinDim)) await call("run_command", { command: `skin set web classic "${url}" ${NAME}` }, "host");
         skinDim = self.dimension;
       }
     } catch {}
@@ -57,7 +58,7 @@ for (;;) {
     if (typeof p !== "object") continue;
     // Noclip scatters players across the Backrooms: too far to walk, so catch up with a teleport.
     if (p.dimension !== me.dimension || Math.hypot(p.x - me.x, p.z - me.z) > 64) {
-      await call("run_command", { command: `tp claude ${who}` }, "host");
+      await call("run_command", { command: `tp ${NAME} ${who}` }, "host");
       await sleep(1500);
       continue;
     }
@@ -67,7 +68,7 @@ for (;;) {
     // Walls the walker cannot get round (mazes, closed rooms): if still far after 6 s, teleport.
     if (dist > 10) { if (!farSince) farSince = Date.now(); } else farSince = 0;
     if (farSince && Date.now() - farSince > 6000) {
-      await call("run_command", { command: `tp claude ${who}` }, "host");
+      await call("run_command", { command: `tp ${NAME} ${who}` }, "host");
       farSince = 0;
       continue;
     }
@@ -75,7 +76,7 @@ for (;;) {
     // stand (they only stand on safe ground) once they are a few blocks off.
     if (me.dimension === "minecraft:the_nether") {
       if (navigatingSince) { await call("stop_navigation"); navigatingSince = 0; }
-      if (dist > NEAR + 2 && !me.inLava) { await call("run_command", { command: `tp claude ${who}` }, "host"); await sleep(800); continue; }
+      if (dist > NEAR + 2 && !me.inLava) { await call("run_command", { command: `tp ${NAME} ${who}` }, "host"); await sleep(800); continue; }
     }
     if (dist > NEAR + 1 && me.dimension !== "minecraft:the_nether") {
       if (Date.now() - navigatingSince > 1500) {

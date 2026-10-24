@@ -1,16 +1,22 @@
 // Prints one line whenever someone says something near Claude: voice chat (transcribed from run/ears/*.wav with
-// whisper.cpp) or text chat (polled through daemon.mjs). Run it under Claude's Monitor so each line wakes Claude up.
+// whisper.cpp) or text chat (polled through daemon.mjs). Run it under Claude's Monitor so each line wakes Claude up,
+// or let any-ai/agent.mjs start it for other AIs. WAKE="name|other" changes the wake word; EARS_VOICE=0 skips voice.
 import { readdirSync, readFileSync, unlinkSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { DAEMON, NAME, RUN } from "./player.mjs";
 const run = promisify(execFile);
 const dir = new URL(".", import.meta.url).pathname;
-const EARS = dir + "run/ears/", MODEL = dir + "models/ggml-base.en.bin";
+const EARS = RUN + "ears/", MODEL = dir + "models/ggml-base.en.bin";
 // Whisper's usual guesses for noise and silence.
 const NOISE = /^\s*(\[.*\]|\(.*\)|you|thank you\.?|thanks for watching!?|\.+)?\s*$/i;
+// The wake word is the player's name (Claude also answers to whisper's "cloud" and "clawed") unless WAKE says otherwise.
+const WAKE = new RegExp(`\\b(${process.env.WAKE ?? (NAME === "claude" ? "claude|cloud|clawed" : NAME)})\\b`, "i");
+const CHAT_WAKE = process.env.WAKE || NAME !== "claude" ? WAKE : /claude/i;
+const VOICE = process.env.EARS_VOICE !== "0";
 
 async function call(tool, args = {}) {
-  const res = await (await fetch("http://127.0.0.1:25601", { method: "POST", body: JSON.stringify({ tool, args }) })).json();
+  const res = await (await fetch(DAEMON, { method: "POST", body: JSON.stringify({ tool, args }) })).json();
   return res.content?.[0]?.text ?? "";
 }
 
@@ -35,7 +41,7 @@ async function pollChat() {
       if (m.id <= lastChat) continue;
       const text = m.data?.text ?? "";
       // Only wake Claude when someone says its name (saves usage). Deaths no longer wake it: buddy.mjs respawns.
-      if (m.type === "chat" && m.data?.sender !== "claude" && /claude/i.test(text)) wake(`💬 ${text}`);
+      if (m.type === "chat" && m.data?.sender !== NAME && CHAT_WAKE.test(text)) wake(`💬 ${text}`);
       lastChat = m.id;
     }
   } catch { /* client or daemon restarting */ }
@@ -49,7 +55,7 @@ async function transcribe() {
     try {
       const { stdout } = await run("whisper-cli", ["-m", MODEL, "-f", EARS + f, "-nt", "-np"]);
       const text = stdout.replace(/\s+/g, " ").trim();
-      if (!NOISE.test(text) && /\b(claude|cloud|clawed)\b/i.test(text)) wake(`🎙️ ${who}: ${text}`);
+      if (!NOISE.test(text) && WAKE.test(text)) wake(`🎙️ ${who}: ${text}`);
     } catch { /* bad clip */ }
     try { unlinkSync(EARS + f); } catch {}
   }
@@ -57,6 +63,6 @@ async function transcribe() {
 
 for (;;) {
   await pollChat();
-  await transcribe();
+  if (VOICE) await transcribe();
   await new Promise(r => setTimeout(r, 700));
 }
