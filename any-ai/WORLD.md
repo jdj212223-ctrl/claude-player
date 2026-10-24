@@ -12,7 +12,10 @@ Places (x y z):
 - The Backroom Tavern: a spruce-fenced stairwell by the beds leads down to a 16x11 bar under the house (floor y 62):
   a long counter with stools, 17 drinks framed on the wall, 4 tables, an ice cream corner.
 - Your room, through the doorway in the tavern's west wall (x 50-56, z 703-709): a bed, a ComputerCraft computer
-  desk, hay bales, and your pet llama named "Ollama".
+  desk, hay bales, and your pet llama named "Ollama". When someone says "your room", they mean this one.
+
+Walking spots for go_to (the tavern and your room are underground, floor y 62, not 69):
+your room 53 62 706, the tavern 65 62 705, the house 70 69 702.
 - A village with villagers a bit north-east (you helped win a raid there). Its houses are oak: never chop oak there.
 
 jdj125's mods:
