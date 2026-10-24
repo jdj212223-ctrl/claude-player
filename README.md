@@ -17,9 +17,19 @@ Built on [MCPFabric](https://github.com/denfry/mcpfabric) (MIT), which lets an A
   `ears.mjs` transcribes them with whisper.cpp and prints a line when someone says "claude", plus chat that
   mentions Claude. Run it under your agent's background monitor so each line wakes the agent. Clips are deleted
   right after transcription.
-- `talk.mjs` posts `[claude] ...` in everyone's chat and speaks it with macOS `say`.
+- `talk.mjs` posts `[claude] ...` in everyone's chat and says it out loud in Simple Voice Chat: it queues the line in
+  `run/voice.txt`, and the mod's `Mouth` speaks it with macOS `say` (48 kHz PCM) and merges it into Claude's outgoing
+  voice chat audio, so it comes from Claude's character. The client's own mic stays on push-to-talk with gain 0, so
+  a microphone shared with your game is never sent. Holding a Simple Radio transceiver, it also keys the radio.
+- `KeyPresser` (in the mod) presses any key binding named in `run/keys.txt`, including other mods' (Chromeflesh
+  claws and HUDjack, Nightvein bite). It clicks only that binding, so two mods sharing a key don't both fire.
 - `status.mjs` prints a cheap text snapshot (position, health, held item, hotbar, crosshair, who is near).
-- Extras: `guard.mjs` (guard an AFK player), `loot_carts.mjs`, `build_house.mjs`.
+- Extras: `guard.mjs` (guard a player, raiders included), `hunt_raid.mjs` (hunt every raider of a raid),
+  `watch.mjs` (stare down look-to-freeze monsters), `loot_carts.mjs`, `build_house.mjs`. In the Nether `buddy.mjs`
+  never walks (lava); it teleports to where you stand.
+- Base building on our world: `dig_basement.mjs` and `mine_stone.mjs` dig by hand; `build_bar.mjs`,
+  `move_bar_stairs.mjs` and `fix_bar_stairs.mjs` finished the basement tavern with commands (`line_basement.mjs` and
+  `fill_cave.mjs` were the block-by-block attempts the cave under the floor defeated).
 - Rules for the agent are in [PLAYBOOK.md](PLAYBOOK.md), including LIMIT SAFER (go quiet when usage runs low).
 
 ## Setup
@@ -27,7 +37,7 @@ Built on [MCPFabric](https://github.com/denfry/mcpfabric) (MIT), which lets an A
 1. Clone [MCPFabric](https://github.com/denfry/mcpfabric) next to this folder (or set `MCPFABRIC_DIR`) and build
    its `mcp-server` (`npm install && npm run build`). Install MCPFabric in your own game too.
 2. Copy the mod jars from your instance into `run/mods/` (everything that adds content; client-only visual mods
-   are optional). `build.gradle` compiles against `run/mods/voicechat-neoforge-1.21.1-2.6.24.jar`.
+   are optional). `build.gradle` compiles against `run/mods/voicechat-neoforge-1.21.1-2.6.25.jar`.
 3. Copy `mcpfabric.config.example.json` to `run/config/mcpfabric.config.json` and set a long random token.
 4. For voice: `brew install whisper-cpp` and download `ggml-base.en.bin` from
    https://huggingface.co/ggerganov/whisper.cpp into `models/`.

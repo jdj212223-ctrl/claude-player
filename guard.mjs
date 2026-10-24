@@ -1,8 +1,10 @@
 // Guards a player who is away from the keyboard: stays next to them and fights hostile mobs that come close,
 // using the host's entity list (sees through walls) and Claude's own client to walk and swing.
 // Runs until stopped; costs no Claude usage. Usage: node guard.mjs [player]
+import { writeFileSync } from "node:fs";
+const dir = new URL(".", import.meta.url).pathname;
 const who = process.argv[2] ?? "jdj125";
-const HOSTILE = /zombie|skeleton|creeper|spider|witch|drowned|husk|stray|pillager|vindicator|slime|phantom|silverfish|enderman|voidclip:/;
+const HOSTILE = /zombie|skeleton|creeper|spider|witch|drowned|husk|stray|pillager|vindicator|evoker|ravager|vex|illusioner|slime|phantom|silverfish|enderman|voidclip:/;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function call(tool, args = {}, target = "me") {
   const res = await (await fetch("http://127.0.0.1:25601", { method: "POST", body: JSON.stringify({ tool, args, target }) })).json();
@@ -15,7 +17,7 @@ for (;;) {
   try {
     const p = await call("get_player", { player: who }, "host");
     if (typeof p !== "object") continue;
-    const near = await call("query_entities", { center: { x: p.x, y: p.y, z: p.z }, radius: 12, onlyLiving: true, includePlayers: false, dimension: p.dimension }, "host");
+    const near = await call("query_entities", { center: { x: p.x, y: p.y, z: p.z }, radius: 20, onlyLiving: true, includePlayers: false, dimension: p.dimension }, "host");
     const foes = (near?.entities ?? []).filter(e => HOSTILE.test(e.type)).sort((a, b) => a.distance - b.distance);
     const me = await call("get_self");
     // VoidClip can noclip Claude away mid-fight: if it ends up in another dimension or far off, go back to them.
@@ -28,7 +30,7 @@ for (;;) {
       const f = foes[0];
       const d = Math.hypot(me.x - f.x, me.z - f.z);
       if (d > 2.8) await call("navigate_to", { x: f.x, y: f.y, z: f.z, reachRadius: 2, sprint: true, timeoutSeconds: 4 });
-      await call("look_at", { x: f.x, y: f.y + 1, z: f.z });
+      await call("look_at", { x: f.x, y: f.y + 1.5, z: f.z });
       const r = await call("attack_entity", { uuid: f.uuid });
       if (r?.ok) console.log(`hit ${f.type} near ${who}`);
       continue;

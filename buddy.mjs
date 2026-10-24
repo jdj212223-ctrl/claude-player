@@ -20,7 +20,7 @@ const skinFor = dim => {
   try { const s = JSON.parse(readFileSync(dir + "skin/skins.json", "utf8")); return s[dim] || s["minecraft:overworld"]; }
   catch { return null; }
 };
-let skinDim = null;
+let skinDim = null, farSince = 0;
 let lastDeathCheck = 0, lastScreenCheck = 0, navigatingSince = 0, glanceUntil = 0, glanceYaw = 0, nextGlance = Date.now() + 6000, wasOn = false;
 for (;;) {
   await sleep(150);
@@ -64,7 +64,20 @@ for (;;) {
     const them = { pos: { x: p.x, y: p.y, z: p.z } };
     const dx = them.pos.x - me.x, dy = them.pos.y + 1.5 - (me.y + 1.62), dz = them.pos.z - me.z;
     const dist = Math.hypot(dx, dz);
-    if (dist > NEAR + 1) {
+    // Walls the walker cannot get round (mazes, closed rooms): if still far after 6 s, teleport.
+    if (dist > 10) { if (!farSince) farSince = Date.now(); } else farSince = 0;
+    if (farSince && Date.now() - farSince > 6000) {
+      await call("run_command", { command: `tp claude ${who}` }, "host");
+      farSince = 0;
+      continue;
+    }
+    // The Nether is lava lakes and cliffs the walker steps straight into: never walk there, just appear where they
+    // stand (they only stand on safe ground) once they are a few blocks off.
+    if (me.dimension === "minecraft:the_nether") {
+      if (navigatingSince) { await call("stop_navigation"); navigatingSince = 0; }
+      if (dist > NEAR + 2 && !me.inLava) { await call("run_command", { command: `tp claude ${who}` }, "host"); await sleep(800); continue; }
+    }
+    if (dist > NEAR + 1 && me.dimension !== "minecraft:the_nether") {
       if (Date.now() - navigatingSince > 1500) {
         await call("navigate_to", { x: them.pos.x, y: them.pos.y, z: them.pos.z, reachRadius: NEAR - 1, sprint: dist > SPRINT_AT, timeoutSeconds: 10 });
         navigatingSince = Date.now();

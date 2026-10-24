@@ -4,6 +4,7 @@ import de.maxhenkel.voicechat.api.ForgeVoicechatPlugin;
 import de.maxhenkel.voicechat.api.VoicechatPlugin;
 import de.maxhenkel.voicechat.api.events.ClientReceiveSoundEvent;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
+import de.maxhenkel.voicechat.api.events.MergeClientSoundEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -49,11 +50,16 @@ public class EarsPlugin implements VoicechatPlugin {
     public void registerEvents(EventRegistration reg) {
         reg.registerEvent(ClientReceiveSoundEvent.EntitySound.class, e -> hear(e.getEntityId(), e.getRawAudio()));
         reg.registerEvent(ClientReceiveSoundEvent.StaticSound.class, e -> hear(e.getId(), e.getRawAudio()));
+        // Claude's own voice: one 20 ms frame of queued speech merged into what this client sends.
+        reg.registerEvent(MergeClientSoundEvent.class, e -> {
+            short[] frame = Mouth.nextFrame();
+            if (frame != null) e.mergeAudio(frame);
+        });
         Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "claude-ears");
             t.setDaemon(true);
             return t;
-        }).scheduleAtFixedRate(this::flushQuiet, 100, 100, TimeUnit.MILLISECONDS);
+        }).scheduleAtFixedRate(() -> { flushQuiet(); Mouth.poll(); }, 100, 100, TimeUnit.MILLISECONDS);
     }
 
     private void hear(UUID who, short[] audio) {
