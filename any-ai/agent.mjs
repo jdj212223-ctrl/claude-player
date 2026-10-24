@@ -35,6 +35,8 @@ const TOOLS = [
   fn("status", "Look around: position, health, food, what is in hand, hotbar, what you look at, who is near."),
   fn("follow", "Start following a player around (runs by itself until stop).", { player: str("player name") }, ["player"]),
   fn("stop", "Stop following or walking, stay where you are."),
+  fn("wear", "Put on armor (like the exoskeleton) or hold an item: give its hotbar slot number from status.",
+    { slot: num("hotbar slot 0-8") }, ["slot"]),
   fn("go_to", "Walk to block coordinates.", { x: num("x"), y: num("y"), z: num("z") }, ["x", "y", "z"]),
   fn("minecraft", "Call any other MCPFabric tool by name, for example get_inventory, look_at, break_block, place_block, " +
     "use_item, attack_entity, craft_item, collect_blocks, find_blocks, get_recent_chat, job_status.",
@@ -47,10 +49,20 @@ async function useTool(name, a) {
     case "status": return await node("status.mjs");
     case "follow": writeFileSync(MODE, `follow ${a.player}\n`); return `following ${a.player}`;
     case "stop": writeFileSync(MODE, "off\n"); await mc("stop_navigation"); return await mc("stop_movement");
+    case "wear": {
+      await mc("select_hotbar_slot", { slot: Number(a.slot) });
+      const held = JSON.parse(await mc("get_equipment")).mainHand;
+      // Armor goes on with a right click; anything else just stays in hand.
+      if (/helmet|chestplate|leggings|boots|exoskeleton|elytra/.test(held?.id ?? "")) await mc("use_item");
+      return await mc("get_equipment");
+    }
     case "go_to": writeFileSync(MODE, "off\n"); return await mc("navigate_to", { x: a.x, y: a.y, z: a.z });
     case "minecraft": {
       let args = a.args ?? {};
-      if (typeof args === "string") args = args.trim() ? JSON.parse(args) : {};
+      // Small models often send the arguments as text, sometimes with stray backslashes: {\"slot\": 2}.
+      if (typeof args === "string") {
+        try { args = args.trim() ? JSON.parse(args) : {}; } catch { args = JSON.parse(args.replace(/\\"/g, '"')); }
+      }
       return await mc(String(a.tool), args);
     }
     default: return "unknown tool " + name;

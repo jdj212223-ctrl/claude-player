@@ -9,12 +9,14 @@ async function call(tool, args = {}) {
 const short = id => (id ?? "").replace(/^minecraft:/, "");
 const screen = await call("get_screen");
 if (!screen?.inWorld) { console.log("not in a world: screen", screen?.screen ?? screen); process.exit(0); }
-const [me, inv, scene, fx] = [await call("get_self"), await call("get_inventory"), await call("describe_scene", { rayColumns: 1, rayRows: 1, maxDistance: 32 }), await call("get_status_effects")];
+const [me, inv, scene, fx, gear] = [await call("get_self"), await call("get_inventory"), await call("describe_scene", { rayColumns: 1, rayRows: 1, maxDistance: 32 }), await call("get_status_effects"), await call("get_equipment")];
 const held = inv.hotbar.find(i => i.slot === inv.selectedSlot);
 console.log(`at ${Math.round(me.x)} ${Math.round(me.y)} ${Math.round(me.z)} in ${short(me.dimension)} | hp ${Math.round(me.health)}/20 food ${me.food}/20 | screen ${screen.screen}`);
 console.log(`holding slot ${inv.selectedSlot}: ${held ? `${short(held.id)} x${held.count}` : "EMPTY HAND"}`);
 console.log("hotbar: " + (inv.hotbar.map(i => `${i.slot}:${short(i.id)}x${i.count}`).join(" ") || "empty"));
 if (inv.main.length) console.log("backpack: " + inv.main.map(i => `${short(i.id)}x${i.count}`).join(" "));
+const worn = ["helmet", "chest", "legs", "boots", "offHand"].filter(k => gear?.[k]?.id).map(k => `${k}: ${short(gear[k].id)}`);
+console.log("wearing: " + (worn.join(", ") || "nothing"));
 const effects = (fx?.effects ?? []).map(e => short(e.id) + (e.amplifier ? " " + (e.amplifier + 1) : ""));
 if (effects.length) console.log("effects: " + effects.join(", "));
 const look = scene?.lookingAt;
