@@ -15,7 +15,9 @@ const MODEL = process.env.AI_MODEL ?? "qwen3:4b-instruct";
 const KEY = process.env.AI_API_KEY ?? "";
 const NAME = process.env.AI_NAME ?? PLAYER; // the in-game player's name (PLAYER=<name> picks which body)
 const MAX_STEPS = 8, KEEP = 30; // tool rounds per wake-up, messages remembered between wake-ups
-const SYSTEM = readFileSync(here + "PLAYBOOK.md", "utf8").replaceAll("{name}", NAME);
+// The rules, then what the AI should know about this world (WORLD.md: places, people, mods; edit it as the world grows).
+const read = file => { try { return readFileSync(here + file, "utf8"); } catch { return ""; } };
+const SYSTEM = (read("PLAYBOOK.md") + "\n" + read("WORLD.md")).replaceAll("{name}", NAME);
 
 async function mc(tool, args = {}, target = "me") {
   const res = await (await fetch(DAEMON, { method: "POST", body: JSON.stringify({ tool, args, target }) })).json();

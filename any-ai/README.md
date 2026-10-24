@@ -128,7 +128,8 @@ You set these in front of the command, like `AI_MODEL=llama3.2 node any-ai/agent
 | `TALK_LABEL` | the name in brackets in chat, like `[ollama]` | the player's name |
 | `EARS_VOICE` | `0` = only listen to text chat, not voice | voice on |
 
-The AI's rules are in [PLAYBOOK.md](PLAYBOOK.md). Change them to change how it behaves.
+The AI's rules are in [PLAYBOOK.md](PLAYBOOK.md), and what it knows about your world (places, people, mods) is in
+[WORLD.md](WORLD.md). Change them to change how it behaves; it reads them when it starts.
 
 ### Ollama (free, runs on your Mac, nothing leaves your computer)
 
