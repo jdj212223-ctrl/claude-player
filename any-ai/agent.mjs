@@ -80,7 +80,9 @@ async function chat(messages) {
 }
 
 // Thinking models (Qwen 3, DeepSeek R1) may put their thoughts in <think> tags; players should not see those.
-const clean = text => (text ?? "").replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+// Small models sometimes write the tool call as text ("say Hey!" or say("Hey!")): keep only the words.
+const clean = text => (text ?? "").replace(/<think>[\s\S]*?<\/think>/g, "").trim()
+  .replace(/^say\b\s*[:(]?\s*["']?([\s\S]*?)["']?\)?$/i, "$1").trim();
 
 let history = [];
 async function turn(heard) {
