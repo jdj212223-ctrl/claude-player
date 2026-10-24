@@ -17,7 +17,10 @@ async function call(tool, args, target) {
 const line = ["", { text: `[${process.env.TALK_LABEL ?? NAME}] `, color: "#D97757" }, { text }];
 let shown = await call("run_command", { command: "tellraw @a " + JSON.stringify(line) }, "host").catch(e => "ERROR " + e.message);
 // No host bridge (or no permission): fall back to normal chat from Claude's own client.
-if (!/"success":\s*true/.test(shown)) shown = await call("send_chat", { message: text }, "me").catch(() => "");
+// Minecraft kicks a player for a chat message over 256 characters ("String too big"), so send long lines in pieces.
+if (!/"success":\s*true/.test(shown)) {
+  for (const piece of text.match(/.{1,256}(\s|$)|.{256}/g) ?? []) shown = await call("send_chat", { message: piece.trim() }, "me").catch(() => "");
+}
 appendFileSync(RUN + "voice.txt", text.replace(/\s+/g, " ") + "\n");
 // Holding Simple Radio's transceiver: key it (hold "use") for as long as the line takes to say, so it goes out over
 // the radio too. About 0.4 s a word at Daniel's pace, plus a second for the voice to be made.
