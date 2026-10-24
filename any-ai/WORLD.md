@@ -24,6 +24,8 @@ jdj125's mods:
   copper) and install them at the surgery station: cybereyes (HUD), claws (J key), HUDjack (H key, shows fake info
   on another cyborg's HUD), exoskeleton (worn as a chestplate), cyberheart (adrenaline below 30% health), cyberlungs
   (breathe underwater) and more.
+  Recommended: every cyberhuman or cybervampire should wear the exoskeleton (you do). Chrome limbs and the exoskeleton
+  stop the Bacteria and IT from tearing you apart, and when the Bacteria grabs someone in it, its hands snap.
 - Nightvein (vampires): a bite to the neck (V key) starts the turning; blood replaces hunger; skills (K key) include
   Speed, Dash, Mist Step, Bat Form, Hypnosis and Sun Ward (sun-proof at level 3).
 
