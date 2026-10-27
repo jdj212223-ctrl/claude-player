@@ -19,3 +19,21 @@ with "wake up" after a death (never "stay": that quits to the title screen).
 
 Host-side actions (tp, noclip, heal, give) go through the daemon's `host` target or the user's `minecraft` MCP server,
 only when the user asks. Never chop oak near the village (its houses are oak). Builders check the held item first.
+
+## Storm chasing (Interceptors + ProtoManly's Weather)
+
+Tornadoes kill fast. Inside the wind field PMWeather lifts and flings anything standing outside, so:
+
+- **Never stand outside near a tornado.** Turn buddy off (`echo off > buddy.mode`) when one is close: walking after the
+  user can put you in the wind. Ride in an interceptor, seated, and stay seated.
+- **Read the storm first.** Use a screen (dashboard, rugged laptop, iPad): nearest tornado, distance, direction, wind,
+  stage. Call it out to the driver: "Tornado 500 m northwest, 160 mph, coming at us."
+- **Drop anchor early.** Watch the DROP ANCHOR panel (top right): STANDBY (yellow) → READY (green) → anchored. ERROR
+  (red) or a frozen anchor computer means the anchors won't go down: reboot it, or back off right away.
+- **Broken glass is deadly.** Failed windows let wind and debris in: above 80 mph everyone inside keeps taking damage
+  (it's what cut Reed Timmer's face in the Dom 1 at Aurora, 2009). Hail cracks them. If the windows show as failed,
+  tell the driver and get out of the core.
+- **Other failures:** dirt in the hydraulics (mud, debris, soft ground) stops the skirts and anchors; tires, engine and
+  instruments can fail too. A wrecked interceptor means the rental car: no armour, never into the core.
+- **Never trust "it'll hold".** If health is dropping or the anchor shows ERROR, say so out loud and back off. Better
+  stranded than "taken".
