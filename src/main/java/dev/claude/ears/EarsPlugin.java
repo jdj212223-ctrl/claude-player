@@ -34,6 +34,7 @@ public class EarsPlugin implements VoicechatPlugin {
     private static final Path DIR = Path.of("ears");
 
     private final Map<UUID, Utterance> speaking = new ConcurrentHashMap<>();
+    private static final java.util.Set<UUID> RADIOS = ConcurrentHashMap.newKeySet();
 
     private static final class Utterance {
         final ByteArrayOutputStream pcm = new ByteArrayOutputStream();
@@ -50,6 +51,13 @@ public class EarsPlugin implements VoicechatPlugin {
     public void registerEvents(EventRegistration reg) {
         reg.registerEvent(ClientReceiveSoundEvent.EntitySound.class, e -> hear(e.getEntityId(), e.getRawAudio()));
         reg.registerEvent(ClientReceiveSoundEvent.StaticSound.class, e -> hear(e.getId(), e.getRawAudio()));
+        // Sounds at a place rather than from a player: Simple Radio's transceivers and radios. Saved as "radio", and
+        // skipped while Claude itself is talking so its own voice coming back over the radio isn't heard as a request.
+        reg.registerEvent(ClientReceiveSoundEvent.LocationalSound.class, e -> {
+            if (Mouth.speaking()) return;
+            RADIOS.add(e.getId());
+            hear(e.getId(), e.getRawAudio());
+        });
         // Claude's own voice: one 20 ms frame of queued speech merged into what this client sends.
         reg.registerEvent(MergeClientSoundEvent.class, e -> {
             short[] frame = Mouth.nextFrame();
@@ -104,6 +112,7 @@ public class EarsPlugin implements VoicechatPlugin {
     }
 
     private static String nameOf(UUID who) {
+        if (RADIOS.contains(who)) return "radio";
         ClientPacketListener conn = Minecraft.getInstance().getConnection();
         PlayerInfo info = conn == null ? null : conn.getPlayerInfo(who);
         return info == null ? who.toString() : info.getProfile().getName();

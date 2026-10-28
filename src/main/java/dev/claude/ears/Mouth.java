@@ -23,6 +23,11 @@ final class Mouth {
     private Mouth() {
     }
 
+    /** Whether Claude still has speech queued, i.e. is talking right now. */
+    static boolean speaking() {
+        return !FRAMES.isEmpty();
+    }
+
     /** The next 20 ms of speech, or null when Claude is quiet. */
     static short[] nextFrame() {
         return FRAMES.poll();

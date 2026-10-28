@@ -1,4 +1,4 @@
-"""Draws Claude's 64x64 Minecraft skin (classic arms) to claude_skin.png, or the sculk-corrupted Backrooms version to\nclaude_skin_sculk.png with --sculk, without any image library."""
+"""Draws Claude's 64x64 Minecraft skin (classic arms) to claude_skin.png, or the sculk-corrupted Backrooms version to\nclaude_skin_sculk.png with --sculk, or the storm-chaser version with a tornado on the back of the hoodie to\nclaude_skin_tornado.png with --tornado, without any image library."""
 import random, struct, zlib
 
 W = H = 64
@@ -75,10 +75,22 @@ if SCULK:
         for x, y in ((cx + d, cy), (cx, cy + d)):
             px[y][x] = (*GLOW, 255)
 
+# --tornado: a grey wall cloud across the shoulders of the hoodie's back (x 32-39, y 20-31) with a funnel that narrows
+# and bends down to a little debris cloud at the hem.
+TORNADO = "--tornado" in sys.argv
+if TORNADO:
+    CLOUD, CLOUD_D, FUNNEL, FUNNEL_D, DEBRIS = (64, 66, 74), (44, 46, 54), (168, 168, 176), (128, 128, 138), (110, 86, 64)
+    fill(32, 20, 40, 22, CLOUD, CLOUD_D, 0.35)
+    for row, (left, width) in enumerate([(32, 8), (33, 6), (33, 5), (34, 4), (34, 3), (35, 3), (35, 2), (36, 2), (36, 1)]):
+        for x in range(left, left + width):
+            px[22 + row][x] = (*(FUNNEL_D if (x + row) % 3 == 0 else FUNNEL), 255)
+    for x, y in ((35, 31), (36, 31), (37, 31), (34, 30), (38, 30)):
+        px[y][x] = (*DEBRIS, 255)
+
 def chunk(kind, data):
     return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
 
 raw = b"".join(b"\x00" + bytes(v for p in row for v in p) for row in px)
 png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", W, H, 8, 6, 0, 0, 0)) \
     + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
-open(__file__.replace("make_skin.py", "claude_skin_sculk.png" if SCULK else "claude_skin.png"), "wb").write(png)
+open(__file__.replace("make_skin.py", "claude_skin_sculk.png" if SCULK else "claude_skin_tornado.png" if TORNADO else "claude_skin.png"), "wb").write(png)

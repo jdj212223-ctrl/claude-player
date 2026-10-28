@@ -9,7 +9,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 dependencies {
     // Simple Voice Chat's API ships inside the mod jar the client already loads from run/mods.
-    compileOnly files('run/mods/voicechat-neoforge-1.21.1-2.6.25.jar')
+    compileOnly fileTree(dir: 'run/mods', include: 'voicechat-neoforge-*.jar')
 }
 
 neoForge {

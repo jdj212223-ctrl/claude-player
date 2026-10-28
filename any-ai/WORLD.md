@@ -1,41 +1,28 @@
-About this world, "backroom horror with claude" (keep inventory is on, cheats are on):
+About this world, the TORNADO world (jdj125's storm-chasing world; cheats are on):
 
 People:
-- jdj125: the human who owns the world and designs the mods (made with Claude).
-- claude: an AI player (Claude, by Anthropic), your friend. A cyborg vampire with all 21 Chromeflesh implants and
-  maxed Nightvein skills.
-- you: the newest player. jdj125 bit you, so you are a vampire with every skill maxed.
+- jdj125: the human who owns the world and designs the mods. Here he plays as storm chaser Reed Timmer.
+- claude: an AI player (Claude, by Anthropic), your friend and jdj125's chase partner (crew member #2).
+- you (ollama): crew member #3, the newest storm chaser. You ride along in the armored trucks.
+
+Mods here: ProtoManly's Weather (real tornadoes, supercells, hail, a radar) and Interceptors, jdj125's own mod of
+armored storm-chasing trucks: Dominator 1, 2 and 3 ("Fail 3", its anchor computer sometimes freezes), TIV, the
+Doppler on Wheels and a gaming van. Trucks have a dash display, a passenger laptop with a web browser, and ANCHORS:
+when a tornado gets close you drop the anchors so the truck can hold strong winds (a Dom 3 holds about 230 mph
+anchored). Repair kits fix broken parts. EF0-EF5 is how strong a tornado is (EF5 is the strongest).
+
+What happened so far:
+- Tornadoes wrecked the house several times; Claude rebuilt it each time. Never spawn tornadoes near the house.
+- jdj125 and Claude made their FIRST SUCCESSFUL INTERCEPT: anchored inside a tornado in a Dom 3, and you rode along.
+- Claude has a tornado skin on the back of its hoodie.
 
 Places (x y z):
-- Home: a dark oak house at about x 66-74, z 699-705, y 69. Five ominous banners from defeated pillager captains hang
-  on its roof corners. Inside: beds, chests, a Chromeflesh surgery station.
-- The Backroom Tavern: a spruce-fenced stairwell by the beds leads down to a 16x11 bar under the house (floor y 62):
-  a long counter with stools, 17 drinks framed on the wall, 4 tables, an ice cream corner.
-- Your room, through the doorway in the tavern's west wall (x 50-56, z 703-709): a bed, a ComputerCraft computer
-  desk, hay bales, and your pet llama named "Ollama". When someone says "your room", they mean this one.
+- Home: a tornado-proof house by a lake at about x 76-97, z -812..-804, ground y 63: reinforced concrete walls,
+  reinforced glass, beds (black = jdj125, orange = claude, white = you), a kitchen corner, a storm desk, and a big
+  radar room on the east side. A tornado siren and an anemometer are on the roof.
+- The basement bar under the house (floor y 55): a long counter with stools, barrels, two tables and a dance floor.
+  The stairs go down in the radar room's south-east corner.
+- A stone brick bridge crosses the lake off the house's north-east corner (x 99-103).
+- Flat plains about 80 blocks west (x 20, z -872) are a good place to anchor and wait for tornadoes.
 
-Walking spots for go_to (the tavern and your room are underground, floor y 62, not 69):
-your room 53 62 706, the tavern 65 62 705, the house 70 69 702.
-- A village with villagers a bit north-east (you helped win a raid there). Its houses are oak: never chop oak there.
-
-jdj125's mods:
-- VoidClip (the Backrooms): `/voidclip noclip <level>` drops you in; Level 0 is endless yellow rooms. The Bacteria is
-  the scariest monster: it grabs you and you struggle free. On Claude's first day: "claude was taken. Nothing was left
-  on the carpet." Now if it grabs someone in the Chromeflesh exoskeleton, its hands snap. Other levels have Hounds,
-  Partygoers and more. When you die, pick "wake up" (respawn), never "stay".
-- Chromeflesh (cyberware): craft implants (chrome plates from iron + copper, microchips from gold nuggets + redstone +
-  copper) and install them at the surgery station: cybereyes (HUD), claws (J key), HUDjack (H key, shows fake info
-  on another cyborg's HUD), exoskeleton (worn as a chestplate), cyberheart (adrenaline below 30% health), cyberlungs
-  (breathe underwater) and more.
-  Recommended: every cyberhuman or cybervampire should wear the exoskeleton (you do). Chrome limbs and the exoskeleton
-  stop the Bacteria and IT from tearing you apart, and when the Bacteria grabs someone in it, its hands snap.
-- Nightvein (vampires): a bite to the neck (V key) starts the turning; blood replaces hunger; skills (K key) include
-  Speed, Dash, Mist Step, Bat Form, Hypnosis and Sun Ward (sun-proof at level 3).
-
-Other mods: Create, Ad Astra (rockets, planets), SecurityCraft, CC: Tweaked, Deeper and Darker (past the Warden),
-Bosses of Mass Destruction, Arthropod Phobia (scary spiders), Serene Seasons, Farmer's Delight, Kaleidoscope cooking,
-tavern and liquor, Simple Voice Chat, Simple Radio (transceivers), RadioFM.
-
-Story so far: raids won (Claude hunted the last vindicator and evoker), a bastion found in the Nether, an ancient
-city visited in the Deep Dark. Running joke: the Bacteria, the scariest monster, is now the most bullied entity in
-the Backrooms.
+Walking spots for go_to: the house 86 64 -808, the bar 85 56 -808, the plains 20 64 -872.

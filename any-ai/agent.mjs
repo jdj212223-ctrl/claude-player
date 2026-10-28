@@ -15,9 +15,10 @@ const MODEL = process.env.AI_MODEL ?? "qwen3:4b-instruct";
 const KEY = process.env.AI_API_KEY ?? "";
 const NAME = process.env.AI_NAME ?? PLAYER; // the in-game player's name (PLAYER=<name> picks which body)
 const MAX_STEPS = 8, KEEP = 30; // tool rounds per wake-up, messages remembered between wake-ups
-// The rules, then what the AI should know about this world (WORLD.md: places, people, mods; edit it as the world grows).
-const read = file => { try { return readFileSync(here + file, "utf8"); } catch { return ""; } };
-const SYSTEM = (read("PLAYBOOK.md") + "\n" + read("WORLD.md")).replaceAll("{name}", NAME);
+// The rules, then who the AI is (AI_PERSONA, optional: e.g. CLAUDE-BACKUP.md, so a local model can stand in for Claude),
+// then what it should know about this world (WORLD.md: places, people, mods; edit it as the world grows).
+const read = file => { try { return file ? readFileSync(here + file, "utf8") : ""; } catch { return ""; } };
+const SYSTEM = [read("PLAYBOOK.md"), read(process.env.AI_PERSONA), read("WORLD.md")].join("\n").replaceAll("{name}", NAME);
 
 async function mc(tool, args = {}, target = "me") {
   const res = await (await fetch(DAEMON, { method: "POST", body: JSON.stringify({ tool, args, target }) })).json();
@@ -38,6 +39,8 @@ const TOOLS = [
   fn("wear", "Put on armor (like the exoskeleton) or hold an item: give its hotbar slot number from status.",
     { slot: num("hotbar slot 0-8") }, ["slot"]),
   fn("go_to", "Walk to block coordinates.", { x: num("x"), y: num("y"), z: num("z") }, ["x", "y", "z"]),
+  fn("cheat", "Run a Minecraft command in the host's world, with cheats: give, tp, effect, time set, weather, " +
+    "pmweather ..., data merge ... (no leading slash).", { command: str("the command, e.g. give jdj125 minecraft:bread 5") }, ["command"]),
   fn("minecraft", "Call any other MCPFabric tool by name, for example get_inventory, look_at, break_block, place_block, " +
     "use_item, attack_entity, craft_item, collect_blocks, find_blocks, get_recent_chat, job_status.",
     { tool: str("tool name"), args: str("arguments as a JSON object, e.g. {\"slot\": 2}") }, ["tool"]),
@@ -56,6 +59,7 @@ async function useTool(name, a) {
       if (/helmet|chestplate|leggings|boots|exoskeleton|elytra/.test(held?.id ?? "")) await mc("use_item");
       return await mc("get_equipment");
     }
+    case "cheat": return await mc("run_command", { command: String(a.command ?? "").replace(/^\//, "") }, "host");
     case "go_to": writeFileSync(MODE, "off\n"); return await mc("navigate_to", { x: a.x, y: a.y, z: a.z });
     case "minecraft": {
       let args = a.args ?? {};

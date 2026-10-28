@@ -13,4 +13,6 @@ until grep -q "HTTP bridge listening" "$LOGS/run-client.log" 2>/dev/null; do sle
 node daemon.mjs "$P" > "$LOGS/daemon.log" 2>&1 &
 sleep 2
 node buddy.mjs "$P" > "$LOGS/buddy.log" 2>&1 &
+# Claude's stand-in brain for when Claude's usage runs out (only for the claude player).
+[ "$P" = claude ] && node backup.mjs > "$LOGS/backup.log" 2>&1 &
 wait

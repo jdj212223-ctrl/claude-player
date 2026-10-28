@@ -2,7 +2,7 @@
 // head smoothly to look at them, glancing around now and then. Write "follow <name>" or "off" to buddy.mode to steer it;
 // "off" leaves movement free for jobs and manual control.
 import { readFileSync } from "node:fs";
-import { DAEMON, MODE, NAME } from "./player.mjs";
+import { DAEMON, MODE, NAME, RUN } from "./player.mjs";
 const dir = new URL(".", import.meta.url).pathname;
 const NEAR = 4, SPRINT_AT = 12, TURN = 14; // blocks, blocks, degrees per step
 
@@ -22,6 +22,12 @@ const skinFor = dim => {
   catch { return null; }
 };
 let skinDim = null, farSince = 0;
+// Out-of-office reply: Claude only hears chat while ears.mjs runs under its Monitor, which the app stops every 30 min
+// and which is gone whenever the Claude app is closed. ears.mjs touches ears.alive each loop; when someone says "claude"
+// and that is over 15 s old, answer in game so they know to ping Claude in the app instead of waiting.
+const fresh = file => { try { return Date.now() - Number(readFileSync(RUN + file, "utf8")) < 15000; } catch { return false; } };
+const earsAlive = () => fresh("ears.alive") || fresh("backup.alive"); // Claude, or backup.mjs's stand-in brain
+let lastChat = -1, lastAway = 0, lastChatCheck = 0;
 let lastDeathCheck = 0, lastScreenCheck = 0, navigatingSince = 0, glanceUntil = 0, glanceYaw = 0, nextGlance = Date.now() + 6000, wasOn = false;
 for (;;) {
   await sleep(150);
@@ -36,6 +42,21 @@ for (;;) {
         if (NAME === "claude" && url && url !== skinFor(skinDim)) await call("run_command", { command: `skin set web classic "${url}" ${NAME}` }, "host");
         skinDim = self.dimension;
       }
+    } catch {}
+  }
+  if (NAME === "claude" && Date.now() - lastChatCheck > 3000) {
+    lastChatCheck = Date.now();
+    try {
+      const { messages = [] } = await call("get_recent_chat", { limit: 30 });
+      for (const msg of messages) {
+        if (lastChat >= 0 && msg.id > lastChat && msg.type === "chat" && msg.data?.sender !== NAME && /claude/i.test(msg.data?.text ?? "")
+            && !earsAlive() && Date.now() - lastAway > 60000) {
+          lastAway = Date.now();
+          const reply = JSON.stringify({ text: "[claude] I'm not listening right now 😴 Ping me in the Claude app and I'll be right back!" });
+          await call("run_command", { command: `tellraw @a ${reply}` }, "host");
+        }
+      }
+      if (messages.length) lastChat = Math.max(lastChat, ...messages.map(msg => msg.id));
     } catch {}
   }
   const [m, who = "jdj125"] = mode();

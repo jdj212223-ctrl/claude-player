@@ -39,7 +39,7 @@ Built on [MCPFabric](https://github.com/denfry/mcpfabric) (MIT), which lets an A
 1. Clone [MCPFabric](https://github.com/denfry/mcpfabric) next to this folder (or set `MCPFABRIC_DIR`) and build
    its `mcp-server` (`npm install && npm run build`). Install MCPFabric in your own game too.
 2. Copy the mod jars from your instance into `run/mods/` (everything that adds content; client-only visual mods
-   are optional). `build.gradle` compiles against `run/mods/voicechat-neoforge-1.21.1-2.6.25.jar`.
+   are optional). `build.gradle` compiles against whichever `run/mods/voicechat-neoforge-*.jar` is there.
 3. Copy `mcpfabric.config.example.json` to `run/config/mcpfabric.config.json` and set a long random token.
 4. For voice: `brew install whisper-cpp` and download `ggml-base.en.bin` from
    https://huggingface.co/ggerganov/whisper.cpp into `models/`.
