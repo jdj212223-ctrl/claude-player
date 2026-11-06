@@ -13,3 +13,5 @@ limit.mode
 house_ground.json
 .DS_Store
 tools/ocr
+guardian.pid
+mods-victus/

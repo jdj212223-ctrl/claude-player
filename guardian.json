@@ -1,0 +1,7 @@
+{
+  "limitsGB": { "ollama": 6, "claude": 5 },
+  "lowMemoryGB": 2,
+  "claudeQuietSeconds": 90,
+  "claudeNoAnswerSeconds": 180,
+  "standIn": "auto"
+}

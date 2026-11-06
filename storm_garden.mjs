@@ -6,7 +6,7 @@ async function call(tool, args) {
 }
 const fails = [];
 const cmd = async c => { const r = await call("run_command", { command: c }); if (!r.success) fails.push(c + " → " + (r.output ?? []).join(" ")); };
-const X0 = 70, X1 = 103, Z0 = -816, Z1 = -794, HX0 = 76, HX1 = 97, HZ0 = -812, HZ1 = -804;
+const X0 = 66, X1 = 107, Z0 = -820, Z1 = -794, HX0 = 72, HX1 = 101, HZ0 = -816, HZ1 = -800;
 const top = {};
 for (let x = X0; x <= X1; x += 8) for (let z = Z0; z <= Z1; z += 8) {
   const r = await call("get_blocks_region", { from: { x, y: 58, z }, to: { x: Math.min(x + 7, X1), y: 72, z: Math.min(z + 7, Z1) } });
@@ -16,7 +16,7 @@ for (let x = X0; x <= X1; x += 8) for (let z = Z0; z <= Z1; z += 8) {
   }
 }
 const inHouse = (x, z) => x >= HX0 - 1 && x <= HX1 + 1 && z >= HZ0 - 1 && z <= HZ1 + 1;
-const onBridge = (x, z) => x >= 98 && x <= 104 && z <= -817;
+const onBridge = (x, z) => x >= 105 && x <= 111 && z <= -817;
 const ground = (x, z) => { const b = top[x + "," + z]; return b && /dirt|grass_block|scour|sand/.test(b.id) ? b.y : null; };
 // 1. Grass everywhere outside the house, and clear the tornado debris plants.
 await cmd(`fill ${X0} 60 ${Z0} ${X1} 70 ${Z1} minecraft:air replace pmweather:plants2`);

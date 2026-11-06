@@ -1,6 +1,6 @@
 // Clears tornado debris round the storm home: every house block (reinforced concrete/glass, spruce, stone bricks,
-// lanterns...) in a 141x141 area goes, the house and bridge included, so run storm_home, storm_home_radar and
-// storm_bridge right after it to put them back.
+// lanterns...) in a 141x141 area goes, the house and bridge included, so run storm_fortress and storm_bridge right
+// after it to put them back.
 async function cmd(command) {
   const res = await (await fetch("http://127.0.0.1:25601", { method: "POST", body: JSON.stringify({ tool: "run_command", args: { command }, target: "host" }) })).json();
   return JSON.parse(res.content?.[0]?.text ?? "{}");

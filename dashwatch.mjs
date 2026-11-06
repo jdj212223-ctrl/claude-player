@@ -8,7 +8,7 @@ const dir = new URL(".", import.meta.url).pathname;
 let lastStep = null, gone = true;
 for (;;) {
   try {
-    await run("node", [dir + "mc.mjs", "screenshot", "{}"], { cwd: dir });
+    await run("node", [dir + "mc.mjs", "screenshot", "{}"], { cwd: dir, env: { ...process.env, BOT_STANDIN: "1" } });
     const { stdout } = await run(dir + "tools/ocr", [dir + "shot.png"]);
     // The distance is "1332 m W"; OCR sometimes reads the m as Cyrillic "м" and must not take "169 mph" for metres.
     const m = stdout.match(/(EF\d|TORNADO)[\s\S]*?(\d{2,5})\s*[mм]\s+([NSEW]{1,2})\b/i);
@@ -18,7 +18,7 @@ for (;;) {
       if (gone || step !== lastStep) {
         const msg = `${ef} tornado ${dist} m ${m[3].toUpperCase()}${dist < 300 ? " ⚠️ CLOSE! Anchor soon!" : ""}`;
         console.log(`🌪️ ${msg}`);
-        await run("node", [dir + "talk.mjs", `📡 ${msg}`], { cwd: dir });
+        await run("node", [dir + "talk.mjs", `📡 ${msg}`], { cwd: dir, env: { ...process.env, BOT_STANDIN: "1" } });
         lastStep = step; gone = false;
       }
     } else if (!gone && /No tornado/i.test(stdout)) {

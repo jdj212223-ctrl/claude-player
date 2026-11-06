@@ -1,0 +1,32 @@
+# Mods on the user's Victus laptop pack (told by the user 2026-11-03). Separate survival world, live streamed, NO cheats.
+3D Skin Layers
+Another Furniture
+Architectury API
+CC: Tweaked
+Cloth Config API
+Cold Sweat
+Controlling
+Dynamic Trees
+EAS Addon for ProtoManly Weather
+Entity Culling
+FerriteCore
+GeckoLib
+Iris Shaders
+JEI
+LambDynamicLights
+Lithium
+MCEF
+mezz Config
+Mouse Tweaks
+Paladin's Furniture
+PMTemperature
+PMW Trees
+PMWeather House
+Primal Winter
+Reese's Sodium Options
+Rotten Flesh Smelt to Leather
+Searchables
+Sodium
+Super Resolution (DLSS, client only)
+Winter Overhaul
+Winterly

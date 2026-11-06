@@ -1,7 +1,7 @@
 // Claude says something: shown in everyone's chat as [claude] text (sent through the host world with tellraw, so the
 // host's game does not hide it as "Not Secure"), and spoken in voice chat (queued in run/voice.txt for the mod's
 // Mouth, which speaks it with macOS `say` into this client's voice chat audio). Usage: node talk.mjs "text"
-import { appendFileSync } from "node:fs";
+import { appendFileSync, writeFileSync } from "node:fs";
 import { DAEMON, NAME, RUN } from "./player.mjs";
 const dir = new URL(".", import.meta.url).pathname;
 const text = process.argv.slice(2).join(" ").trim();
@@ -22,6 +22,8 @@ if (!/"success":\s*true/.test(shown)) {
   for (const piece of text.match(/.{1,256}(\s|$)|.{256}/g) ?? []) shown = await call("send_chat", { message: piece.trim() }, "me").catch(() => "");
 }
 appendFileSync(RUN + "voice.txt", text.replace(/\s+/g, " ") + "\n");
+// Claude itself answered (not a stand-in or autopilot): the guardian sees Claude is still here.
+if (!process.env.BOT_STANDIN) writeFileSync(RUN + "said.alive", String(Date.now()));
 // Holding Simple Radio's transceiver: key it (hold "use") for as long as the line takes to say, so it goes out over
 // the radio too. About 0.4 s a word at Daniel's pace, plus a second for the voice to be made.
 const inv = JSON.parse((await call("get_inventory", {}, "me").catch(() => "{}")) || "{}");

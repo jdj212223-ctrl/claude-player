@@ -3,22 +3,51 @@
 // (someone said the wake word in chat or voice) becomes one turn: the AI looks, acts with tools, and answers in game.
 // Needs the player running (start.sh, or PLAYER=<name> ./start.sh for an AI with its own body). Settings come from environment variables, see README.md.
 import { spawn, execFile } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { promisify } from "node:util";
-import { DAEMON, MODE, NAME as PLAYER } from "../player.mjs";
+import { DAEMON, MODE, NAME as PLAYER, RUN } from "../player.mjs";
+import { GB, config, memory, pickModel } from "../guardian-lib.mjs";
 const run = promisify(execFile);
 const here = new URL(".", import.meta.url).pathname, root = here + "../";
 
 const BASE = (process.env.AI_BASE_URL ?? "http://127.0.0.1:11434/v1").replace(/\/$/, "");
-const MODEL = process.env.AI_MODEL ?? "qwen3:4b-instruct";
+const ASKED_MODEL = process.env.AI_MODEL ?? "qwen3:4b-instruct";
 const KEY = process.env.AI_API_KEY ?? "";
 const NAME = process.env.AI_NAME ?? PLAYER; // the in-game player's name (PLAYER=<name> picks which body)
 const MAX_STEPS = 8, KEEP = 30; // tool rounds per wake-up, messages remembered between wake-ups
 // The rules, then who the AI is (AI_PERSONA, optional: e.g. CLAUDE-BACKUP.md, so a local model can stand in for Claude),
 // then what it should know about this world (WORLD.md: places, people, mods; edit it as the world grows).
 const read = file => { try { return file ? readFileSync(here + file, "utf8") : ""; } catch { return ""; } };
-const SYSTEM = [read("PLAYBOOK.md"), read(process.env.AI_PERSONA), read("WORLD.md")].join("\n").replaceAll("{name}", NAME);
+const LOCAL = /127\.0\.0\.1:11434|localhost:11434/.test(BASE);
+
+// AI_MODEL=auto (bot 3.0): pick the biggest installed Ollama model that fits in the free memory and in this player's
+// memory limit (guardian.json), so a small Mac gets a small model instead of freezing.
+let MODEL = ASKED_MODEL;
+if (MODEL === "auto") {
+  const { free } = await memory();
+  const limit = config().limitsGB?.[PLAYER];
+  MODEL = (await pickModel(Math.min(free - 1.5 * GB, (limit ?? Infinity) * GB))) ?? "qwen3:4b-instruct";
+}
+
+// What the guardian wrote while this brain was away (it took over, memory ran low...): read it once, then file it.
+let news = "";
+const REPORT = RUN + "guardian-report.txt";
+if (existsSync(REPORT)) {
+  news = readFileSync(REPORT, "utf8").trim().slice(-3000);
+  try { renameSync(REPORT, RUN + "guardian-report.read.txt"); } catch {}
+}
+const SYSTEM = [read("PLAYBOOK.md"), read(process.env.AI_PERSONA), read("WORLD.md"),
+  news && "WHAT HAPPENED WHILE YOU WERE AWAY (from the guardian; mention it in one short line if someone asks):\n" + news,
+].join("\n").replaceAll("{name}", NAME);
+
+// This brain's card for the guardian: who it is, which model, whether it's thinking right now. A heartbeat every 5 s.
+const CARD = RUN + "brain.json";
+const card = { player: PLAYER, pid: process.pid, model: MODEL, base: BASE, local: LOCAL, standIn: !!process.env.BOT_STANDIN,
+  state: "running", started: Date.now(), beat: Date.now(), busy: false, lastTurn: 0 };
+const saveCard = (extra = {}) => { Object.assign(card, extra, { beat: Date.now() }); try { writeFileSync(CARD, JSON.stringify(card, null, 2)); } catch {} };
+saveCard();
+setInterval(saveCard, 5000).unref();
 
 async function mc(tool, args = {}, target = "me") {
   const res = await (await fetch(DAEMON, { method: "POST", body: JSON.stringify({ tool, args, target }) })).json();
@@ -79,7 +108,17 @@ async function chat(messages) {
     headers: { "Content-Type": "application/json", ...(KEY && { Authorization: "Bearer " + KEY }) },
     body: JSON.stringify({ model: MODEL, messages, tools: TOOLS }),
   });
-  if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok) {
+    const body = (await res.text()).slice(0, 300);
+    // Ollama says this when the model can't fit: tell the guardian and stop, so autopilot can take over.
+    if (/more system memory|out of memory|insufficient memory|cudaMalloc|failed to allocate/i.test(body)) {
+      saveCard({ state: "out-of-memory", error: body });
+      console.log("  out of memory: " + body);
+      ears.kill();
+      process.exit(3);
+    }
+    throw new Error(`${res.status} ${body}`);
+  }
   return (await res.json()).choices[0].message;
 }
 
@@ -127,7 +166,9 @@ async function pump() {
   busy = true;
   const heard = queue.splice(0).join("\n");
   console.log(heard);
+  saveCard({ busy: true });
   try { await turn(heard); } catch (e) { console.log("  AI error: " + e.message); }
+  saveCard({ busy: false, lastTurn: Date.now() });
   busy = false;
   pump();
 }
@@ -135,5 +176,6 @@ async function pump() {
 console.log(`${NAME} is listening, brain: ${MODEL} at ${BASE}`);
 const ears = spawn("node", [root + "ears.mjs"], { cwd: root, stdio: ["ignore", "pipe", "inherit"] });
 createInterface({ input: ears.stdout }).on("line", line => { queue.push(line); pump(); });
-ears.on("exit", code => { console.log("ears stopped (" + code + ")"); process.exit(1); });
-for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => { ears.kill(); process.exit(0); });
+ears.on("exit", code => { console.log("ears stopped (" + code + ")"); saveCard({ state: "ears-stopped" }); process.exit(1); });
+// A clean stop: the guardian must not mistake it for a crash.
+for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => { saveCard({ state: "stopped" }); ears.kill(); process.exit(0); });

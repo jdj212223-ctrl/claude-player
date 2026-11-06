@@ -8,13 +8,13 @@ const dir = new URL(".", import.meta.url).pathname;
 const AT = +(process.env.ANCHOR_AT ?? 200);
 for (;;) {
   try {
-    await run("node", [dir + "mc.mjs", "screenshot", "{}"], { cwd: dir });
+    await run("node", [dir + "mc.mjs", "screenshot", "{}"], { cwd: dir, env: { ...process.env, BOT_STANDIN: "1" } });
     const { stdout } = await run(dir + "tools/ocr", [dir + "shot.png"]);
     const m = stdout.match(/(EF\d|TORNADO)[\s\S]*?(\d{2,5})\s*[mм]\s+([NSEW]{1,2})/i);
     if (m && +m[2] < AT && /READY/i.test(stdout)) {
       writeFileSync(dir + "run/keys.txt", "key.interceptors.anchors\n");
       console.log(`⚓ anchors deploying, tornado ${m[2]} m ${m[3]}`);
-      await run("node", [dir + "talk.mjs", `⚓ DEPLOYING ANCHORS! Tornado ${m[2]} m ${m[3]}. Hold on! 🌪️`], { cwd: dir });
+      await run("node", [dir + "talk.mjs", `⚓ DEPLOYING ANCHORS! Tornado ${m[2]} m ${m[3]}. Hold on! 🌪️`], { cwd: dir, env: { ...process.env, BOT_STANDIN: "1" } });
       break;
     }
   } catch {}

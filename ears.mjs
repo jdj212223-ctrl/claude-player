@@ -28,9 +28,13 @@ async function call(tool, args = {}) {
 // LIMIT SAFER: while limit.mode says "on", Claude is not woken at all (usage is nearly used up), except by a message
 // that names Claude and asks to turn it off ("claude limit safer off").
 const limitSafer = () => { try { return readFileSync(dir + "limit.mode", "utf8").trim() === "on"; } catch { return false; } };
+// Only Claude's own ears (no EARS_ALIVE) go quiet for LIMIT SAFER: stand-ins and autopilot must keep hearing. They also
+// note when they last woke Claude (wake.last), so the guardian can tell when Claude stops answering.
+const OWN = !process.env.EARS_ALIVE;
 const wake = line => {
-  if (limitSafer() && !/claude.*(limit safer off|wake up)/i.test(line)) return;
+  if (OWN && limitSafer() && !/claude.*(limit safer off|wake up)/i.test(line)) return;
   console.log(line);
+  if (OWN) try { writeFileSync(RUN + "wake.last", String(Date.now())); } catch {}
 };
 
 let lastChat = -1;
@@ -42,11 +46,15 @@ async function pollChat() {
       if (messages.length) lastChat = Math.max(...messages.map(m => m.id));
       return;
     }
+    // The client restarted (an alpha swap): its message ids start again from 0, so read the new ones from the start.
+    if (messages.length && Math.max(...messages.map(m => m.id)) < lastChat) lastChat = Math.min(...messages.map(m => m.id)) - 1;
     for (const m of messages) {
       if (m.id <= lastChat) continue;
       const text = m.data?.text ?? "";
       // Only wake Claude when someone says its name (saves usage). Deaths no longer wake it: buddy.mjs respawns.
-      if (m.type === "chat" && m.data?.sender !== NAME && CHAT_WAKE.test(text)) wake(`💬 ${text}`);
+      // Servers with No Chat Reports send player chat as system messages ("<name> text"), so read the sender there.
+      const sender = m.type === "chat" ? m.data?.sender : m.type === "system_message" ? text.match(/^<([^>]+)>/)?.[1] : null;
+      if (sender && sender !== NAME && CHAT_WAKE.test(text)) wake(`💬 ${text}`);
       lastChat = m.id;
     }
   } catch { /* client or daemon restarting */ }

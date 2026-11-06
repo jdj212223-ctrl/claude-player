@@ -30,7 +30,7 @@ Built on [MCPFabric](https://github.com/denfry/mcpfabric) (MIT), which lets an A
 - Base building on our world: `dig_basement.mjs` and `mine_stone.mjs` dig by hand; `build_bar.mjs`,
   `move_bar_stairs.mjs` and `fix_bar_stairs.mjs` finished the basement tavern with commands (`line_basement.mjs` and
   `fill_cave.mjs` were the block-by-block attempts the cave under the floor defeated).
-- Rules for the agent are in [PLAYBOOK.md](PLAYBOOK.md), including LIMIT SAFER (go quiet when usage runs low).
+- Rules for the agent are in [PLAYBOOK.md](PLAYBOOK.md), including LIMIT SAFER (go quiet when usage runs low). Bot 3.0 adds the guardian (`guardian.mjs`, settings in `guardian.json`): memory limits, autopilot when an AI brain crashes or runs out of memory, and a stand-in when Claude hits its 5-hour or weekly limit.
 - Other AIs (GitHub Copilot, Codex, ChatGPT's and Mistral's models, local Ollama models) can be the brain too: see
   [any-ai/](any-ai/README.md).
 
